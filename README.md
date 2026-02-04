@@ -1,4 +1,4 @@
-# Terraform Workshop - Infrastructure as Code (IaC) 🚀
+# Terraform Workshop - Infrastructure as Code (IaC)
 
 This repository contains the infrastructure developed during a comprehensive Terraform workshop. The project focuses on deploying a scalable, secure, and modularized AWS platform using industry best practices.
 
