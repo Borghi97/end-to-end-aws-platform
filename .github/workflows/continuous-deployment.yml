@@ -1,0 +1,62 @@
+name: Continuous Deployment
+
+on:
+  workflow_dispatch:
+  push:
+    branches:
+      - main
+
+env:
+  BACKEND_ECR_REPOSITORY: "backend"
+  FRONTEND_ECR_REPOSITORY: "frontend"
+  IMAGE_TAG: ${{ github.sha }}
+
+permissions:
+  id-token: write   
+  contents: read    
+
+jobs:
+  backend:
+    name: Backend Deployment
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout Code
+        uses: actions/checkout@v4
+
+      - name: Configure AWS Credentials
+        uses: aws-actions/configure-aws-credentials@v5.1.1 
+        with:
+          aws-region: us-east-1
+          role-to-assume: arn:aws:iam::905343638195:role/github-role
+
+      - name: Login to Amazon ECR
+        id: login-ecr
+        uses: aws-actions/amazon-ecr-login@v2
+
+      - name: Build, tag, and push docker image to Amazon ECR Public
+        env:
+          REGISTRY: ${{ steps.login-ecr.outputs.registry }}
+          REPOSITORY: my-ecr-public-repo
+        run: |
+          docker build -f ./dvn-workshop-apps/backend/YoutubeliveApp/Dockerfile \
+            -t $REGISTRY/$BACKEND_ECR_REPOSITORY:$IMAGE_TAG \
+            ./dvn-workshop-apps/backend/YoutubeliveApp 
+          docker push $REGISTRY/$BACKEND_ECR_REPOSITORY:$IMAGE_TAG
+
+      - name: Checkout GitOps Repository
+        uses: actions/checkout@v6
+        with:
+          repository: 'Borghi97/gitops' 
+          token: ${{ secrets.PAT }}
+
+      - name: Kustomize Edit Image
+        env:
+          REGISTRY: ${{ steps.login-ecr.outputs.registry }}
+        run: |
+          # Navegue até o diretório do kustomization se necessário (ex: cd k8s/overlays/prd)
+          kustomize edit set image $REGISTRY/$BACKEND_ECR_REPOSITORY=$REGISTRY/$BACKEND_ECR_REPOSITORY:$IMAGE_TAG
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add .
+          git commit -m "[BOT] Changed backend image to $REGISTRY/$BACKEND_ECR_REPOSITORY:$IMAGE_TAG
+          git push

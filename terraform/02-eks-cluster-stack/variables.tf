@@ -46,3 +46,8 @@ variable "eks_cluster" {
     node_group_scaling_config_min_size     = 2
   }
 }
+
+variable "ecr_repositories" {
+  type = list(string)
+  default = ["backend", "frontend"]
+}
