@@ -17,7 +17,8 @@ WORKDIR /youtube-live-app
 
 ENV NODE_ENV=production
 
-COPY --from=builder /app/dvn-workshop-apps/frontend/youtube-live-app/dist ./dist
+COPY --from=builder /app/dvn-workshop-apps/frontend/youtube-live-app/.next ./.next
+COPY --from=builder /app/dvn-workshop-apps/frontend/youtube-live-app/public ./public
 COPY --from=builder /app/dvn-workshop-apps/frontend/youtube-live-app/package.json ./
 COPY --from=builder /app/dvn-workshop-apps/frontend/youtube-live-app/node_modules ./node_modules
 
