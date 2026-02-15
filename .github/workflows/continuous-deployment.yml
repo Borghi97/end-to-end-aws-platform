@@ -37,7 +37,7 @@ jobs:
         env:
           REGISTRY: ${{ steps.login-ecr.outputs.registry }}
         run: |
-          # O contexto foi alterado para "." (raiz) para que o Dockerfile encontre a pasta /backend
+          
           docker build -f ./dvn-workshop-apps/backend/YoutubeLiveApp/Dockerfile \
             -t $REGISTRY/$BACKEND_ECR_REPOSITORY:$IMAGE_TAG \
             .
