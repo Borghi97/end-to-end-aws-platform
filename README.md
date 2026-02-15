@@ -1,46 +1,50 @@
-# Terraform Workshop - Infrastructure as Code (IaC)
+# Full-Stack AWS Platform & GitOps Implementation
 
-This repository contains the infrastructure developed during a comprehensive Terraform workshop. The project focuses on deploying a scalable, secure, and modularized AWS platform using industry best practices.
+This repository contains a complete end-to-end cloud platform, integrating a .NET backend and a Next.js frontend with a robust CI/CD pipeline and GitOps deployment strategy.
 
 ##  Project Architecture
 
-The infrastructure is decoupled into independent stacks and reusable modules to ensure modularity and scalability:
+The project is organized into two primary repositories to separate application logic from infrastructure state:
 
-* **`00-remote-backend-stack`**: Provisions the foundational resources (S3 Bucket) required to store the Terraform State file remotely.
-* **`01-networking-stack`**: Configures the core network layer (VPC, CIDR blocks) utilizing the remote backend and modularized structures.
-* **`02-eks-cluster-stack`**: Deploys the Amazon Elastic Kubernetes Service (EKS) infrastructure, including the Control Plane, Managed Node Groups, and necessary IAM Roles.
-* **`modules/vpc`**: A custom, reusable module for VPC creation, designed to handle subnets, routing, and internet gateways efficiently.
-* **`app`**: Dedicated directory for application source code and Kubernetes deployment manifests.
+* **`end-to-end-aws-platform`**: The application source code repository.
+* **`backend`**: A .NET 8.0 Web API designed for scalability.
+* **`frontend`**: A Next.js 14 application providing the user interface.
+* **`github/workflows`**: GitHub Actions definitions for Continuous Integration.
+* **`gitops`**: The source of truth for the cluster state.
+* **`kubernetes`**: Contains Kubernetes manifests (Deployments, Services, Ingress).
+* **`kustomize`**: Configuration for environment-specific overlays and image tag management.
 
-##  Core Concepts Implemented
+##  Core Technical Updates
 
-* **Modular Infrastructure**: Transitioned to a module-based approach (VPC Module) to promote code reusability and cleaner root configurations.
-* **Remote Backend**: State management using S3 storage to enable team collaboration and ensure state persistence.
-* **State Locking**: (In progress) Integration with DynamoDB to prevent concurrent executions and state corruption.
-* **Advanced Variables**: Extensive use of `type = object` for variables to maintain a strictly typed and organized codebase.
-* **Security (IAM Assume Role)**: Leveraging `role_arn` in provider configurations to follow the principle of least privilege.
+* **Next.js 14 Docker Optimization**: Implementation of a multi-stage Dockerfile tailored for Next.js. It handles the specific build output of the .next directory and ensures all production dependencies are correctly mapped within a monorepo context.
+* **Monorepo Context Management**: Docker builds are now executed from the repository root. This allows the .NET compiler to resolve project references across different directories while maintaining a clean build environment.
+* **Automated Image Tagging**: The CI pipeline automatically builds, tags, and pushes images to Amazon ECR. It then programmatically updates the GitOps repository with the new image SHA, ensuring the cluster stays in sync with the latest code.
+* **Secret Management**: Secure integration with GitHub Secrets and Personal Access Tokens (PAT) to allow cross-repository communication between the application and GitOps repositories.
 
-##  Network Features and Orchestration Features
+##  Network and Deployment Features
 
-- **VPC Segmentation**: Logic for public and private subnet distribution.
-- **Elastic Kubernetes Service**: Automated provisioning of a production-ready Kubernetes cluster.
-- **Multi-AZ Deployment**: Preparation for high availability across different Availability Zones.
-- **Resource Tagging**: Standardized tagging for better resource management in the AWS Console.
+- **Amazon ECR Integration**: Private container registries for secure image storage.
+- **Amazon EKS Orchestration**: Deployment targets a managed Kubernetes environment.
+- **GitOps Workflow**: Utilizes the "Push-to-Deploy" model where the GitHub Action acts as the bridge between the application build and the declarative infrastructure state.
+- **Environment Consistency**: Use of Docker environment variables to ensure the ASPNETCORE_ENVIRONMENT and NODE_ENV are optimized for production.
 
 ##  Getting Started
 
 1.  **Prerequisites**: 
-    * Terraform CLI installed.
-    * AWS CLI configured with appropriate credentials.
-    * kubectl installed for cluster management.
-2.  **Deployment**:
-    * Navigate to the desired stack folder in numerical order (e.g., `cd terraform/00-remote-backend-stack`).
-    * Initialize the backend: `terraform init`.
-    * Review the execution plan: `terraform plan`.
-    * Apply changes: `terraform apply`.
+    * Docker Desktop or Docker Engine installed.
+    * Access to an AWS Environment with ECR and EKS configured.
+    * GitHub Personal Access Token (PAT) with repo scope configured as a secret.
+2.  **Local Development**:
+    * Backend: Navigate to backend/YoutubeLiveApp and run dotnet run.
+    * Frontend: Navigate to frontend/youtube-live-app, run npm install followed by npm run dev.
+
+3.  **CI/CD Execution**:
+    * Pushing to the main branch triggers the continuous-deployment.yml workflow.
+    * Monitor the "Actions" tab to verify the build, push, and GitOps update steps.
 
 ##  Observations
-The `.tfstate` and `.tfvars` files containing sensitive information are explicitly ignored via `.gitignore` to prevent security leaks and merge conflicts.
+
+The Dockerfiles have been updated to utilize specific working directories (/app/dvn-workshop-apps/...) to prevent path resolution errors during the npm ci and dotnet publish phases.
 
 ---
  **Author:** [Borghi97](https://github.com/Borghi97)
